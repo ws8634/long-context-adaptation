@@ -90,12 +90,46 @@ CLI通过标准输出输出JSON格式结果：
 
 #### 错误处理
 
-当遇到不支持的参数或错误时，CLI会输出包含`error`字段的JSON并以非零退出码终止：
+**重要**: CLI与库中**不支持的参数一律不得静默忽略**，须以非0退出码终止，stdout输出JSON格式错误信息。
+
+**不支持参数示例**：
+- 非 `deterministic_retrieval` 策略使用 `--seed` 参数
+- 今后扩展的其他互斥参数
+
+**错误输出格式**（包含策略名与本次生效参数摘要）：
+
+```json
+{
+  "error": "--seed is not supported for strategy 'sliding_window'. Only 'deterministic_retrieval' supports --seed.",
+  "strategy": "sliding_window",
+  "params_summary": {
+    "input_file": "/path/to/file.txt",
+    "strategy": "sliding_window",
+    "context_limit": 4096,
+    "dry_run": false,
+    "seed": 42
+  },
+  "truncated": null,
+  "tokens_in": null,
+  "tokens_out": null,
+  "discarded_blocks": null,
+  "output_text": null,
+  "explanation": "Strategy 'sliding_window_truncation' does not accept seed parameter. Use --seed only with 'deterministic_retrieval' strategy."
+}
+```
+
+**其他错误**（如文件不存在）同样以JSON格式输出：
 
 ```json
 {
   "error": "File not found: nonexistent.txt",
   "strategy": "sliding_window",
+  "params_summary": {
+    "input_file": "nonexistent.txt",
+    "strategy": "sliding_window",
+    "context_limit": 4096,
+    "dry_run": false
+  },
   "truncated": null,
   "tokens_in": null,
   "tokens_out": null,
